@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
-import 'package:my_temperature/database/provider/UserProvider.dart';
 import 'package:my_temperature/database/model/UserModel.dart';
+import 'package:my_temperature/database/provider/UserProvider.dart';
 
 class AddUserPage extends StatefulWidget {
   final String title;
@@ -32,8 +32,9 @@ class AddUserPageState extends State<AddUserPage> {
           // the App.build method, and use it to set our appbar title.
           title: Text('添加成员'),
         ),
-        body: Center(
-            child: Form(
+        body: SingleChildScrollView(
+            child: Center(
+                child: Form(
           key: _formKey,
           autovalidate: true, // 自动开启校验
           child: Padding(
@@ -51,9 +52,12 @@ class AddUserPageState extends State<AddUserPage> {
                     }),
                 DropdownButtonFormField(
                     onChanged: (newValue) => setState(() {
-                      _genderController.text = newValue;
-                    }),
-                    value: _genderController.text == null || _genderController.text.isEmpty ? 'm' :  _genderController.text,
+                          _genderController.text = newValue;
+                        }),
+                    value: _genderController.text == null ||
+                            _genderController.text.isEmpty
+                        ? 'm'
+                        : _genderController.text,
                     items: [
                       DropdownMenuItem(
                         child: Text('男'),
@@ -69,29 +73,29 @@ class AddUserPageState extends State<AddUserPage> {
                     validator: (v) {
                       return v.trim().length > 0 ? null : "成员性别不能为空";
                     }),
-              TextFormField(
-                enableInteractiveSelection: false,
-                autofocus: true,
-                decoration: new InputDecoration(
-                    labelText: '生日',
-                    hintText: '请输入生日',
-                    suffix: new FlatButton(
-                        onPressed: () {
-                          DatePicker.showDatePicker(context,
-                              maxDateTime: DateTime.now(),
-                              onConfirm: (dateTime, List<int> index) {
-                                _birthdayController.text =
-                                dateTime.toString().split(" ")[0];
-                              },
-                              initialDateTime: DateTime.now(),
-                              locale: DateTimePickerLocale.zh_cn);
-                        },
-                        child: new Text("选择"))),
-                controller: _birthdayController,
-                validator: (v) {
-                  return v.trim().length > 0 ? null : "生日不能为空";
-                },
-              ),
+                TextFormField(
+                  enableInteractiveSelection: false,
+                  autofocus: true,
+                  decoration: new InputDecoration(
+                      labelText: '生日',
+                      hintText: '请输入生日',
+                      suffix: new FlatButton(
+                          onPressed: () {
+                            DatePicker.showDatePicker(context,
+                                maxDateTime: DateTime.now(),
+                                onConfirm: (dateTime, List<int> index) {
+                              _birthdayController.text =
+                                  dateTime.toString().split(" ")[0];
+                            },
+                                initialDateTime: DateTime.now(),
+                                locale: DateTimePickerLocale.zh_cn);
+                          },
+                          child: new Text("选择"))),
+                  controller: _birthdayController,
+                  validator: (v) {
+                    return v.trim().length > 0 ? null : "生日不能为空";
+                  },
+                ),
                 Padding(
                     padding: const EdgeInsets.only(top: 28.0),
                     child: Row(children: [
@@ -127,6 +131,6 @@ class AddUserPageState extends State<AddUserPage> {
               ],
             ),
           ),
-        )));
+        ))));
   }
 }
