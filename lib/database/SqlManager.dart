@@ -12,7 +12,7 @@ class SqlManager {
     var databasesPath = await getDatabasesPath();
 
     String path = join(databasesPath, _NAME);
-    await deleteDatabase(path);
+//    await deleteDatabase(path);
     _database = await openDatabase(path, version: _VERSION,
         onCreate: (Database db, int version) async {
       // When creating the db, create the table
