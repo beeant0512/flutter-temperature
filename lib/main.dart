@@ -97,6 +97,13 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              RaisedButton(
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => AddTemperaturePage())),
+                child: Text('添加温度'),
+              ),
               FutureBuilder(
                   future: getAllUsers(),
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -195,13 +202,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       return CircularProgressIndicator();
                     }
                   }),
-              RaisedButton(
-                onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => AddTemperaturePage())),
-                child: Text('添加温度'),
-              ),
             ],
           ),
         ),
