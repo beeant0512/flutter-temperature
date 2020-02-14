@@ -72,11 +72,12 @@ class AddTemperaturePageState extends State<AddTemperaturePage> {
                               });
                         }
                         _userController.text = items.isEmpty ? '' : items[0].value.toString();
+                        var dropdownInitialValue = _userController.text.isEmpty ? null : int.parse(_userController.text);
                         return DropdownButtonFormField(
                             onChanged: (newValue) => setState(() {
                                   _userController.text = newValue;
                                 }),
-                            value: _userController.text.isEmpty ? null : int.parse(_userController.text),
+                            value: dropdownInitialValue,
                             items: items,
                             decoration: new InputDecoration(
                                 labelText: '用户',
