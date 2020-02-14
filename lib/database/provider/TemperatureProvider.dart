@@ -15,13 +15,6 @@ class TemperatureProvider extends DatabaseProvider {
     return table;
   }
 
-  ///查询数据库
-  Future _getTemperatureProvider(Database db, int id) async {
-    List<Map<String, dynamic>> maps =
-        await db.rawQuery("select * from $table where id = $id");
-    return maps;
-  }
-
   ///插入到数据库
   Future insert(TemperatureModel model) async {
     Database db = await getDataBase();

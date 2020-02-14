@@ -122,10 +122,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                       return CircularProgressIndicator();
                                     }
                                     var xAxis = [];
-                                    var list = '["2020-02-15 00:09","2020-02-15 00:31"]';
                                     List<double> yAxis = List<double>();
                                     temperatures.forEach((temperature) => {
-                                      xAxis.add('\"${temperature.time.substring(0, 5)}\"'),
+                                      xAxis.add('\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
                                       yAxis.add(temperature.value)
                                     });
                                     var xAxisString = "[" + xAxis.join(",") + "]";
