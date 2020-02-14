@@ -27,6 +27,25 @@ class TemperatureProvider extends DatabaseProvider {
     Database db = await getDataBase();
     return await db.rawInsert(
         "insert into $table (user_id, date, time, value) values (?, ?,?,?)",
-        [model.date, model.time, model.value]);
+        [model.userId, model.date, model.time, model.value]);
+  }
+
+  Future<List> fetchAll() async {
+    Database db = await getDataBase();
+    List<Map<String, dynamic>> maps = await db.rawQuery("select * from $table");
+    List<TemperatureModel> list = List<TemperatureModel>();
+
+    maps.forEach((model) => {list.add(TemperatureModel.fromJson(model))});
+    return list;
+  }
+
+  Future<List<TemperatureModel>> fetchAllByUserId(int userId) async {
+    Database db = await getDataBase();
+    List<Map<String, dynamic>> maps =
+        await db.rawQuery("select * from $table where user_id = $userId order by date desc, time desc");
+    List<TemperatureModel> list = List<TemperatureModel>();
+
+    maps.forEach((model) => {list.add(TemperatureModel.fromJson(model))});
+    return list;
   }
 }

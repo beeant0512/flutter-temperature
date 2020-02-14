@@ -26,6 +26,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   sqflite: ^1.2.0
   flutter_cupertino_date_picker: ^1.0.12
+  flutter_echarts: ^1.2.3
 
 dev_dependencies:
   flutter_test:

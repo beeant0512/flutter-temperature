@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_echarts/flutter_echarts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:my_temperature/add_temperature.dart';
 import 'package:my_temperature/add_user.dart';
+import 'package:my_temperature/database/provider/TemperatureProvider.dart';
+
+import 'database/model/TemperatureModel.dart';
+import 'database/model/UserModel.dart';
+import 'database/provider/UserProvider.dart';
 
 void main() => runApp(MyApp());
 
@@ -9,7 +15,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       title: 'Flutter Demo',
       localizationsDelegates: [
@@ -39,7 +44,6 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-
   MyHomePage({Key key, this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
@@ -58,6 +62,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  Future<List<UserModel>> getAllUsers() async {
+    UserProvider userProvider = new UserProvider();
+    Future<List<UserModel>> users = userProvider.fetchAll();
+    return users;
+  }
+
+  Future<List<TemperatureModel>> getAllTemperature(int userId) async {
+    TemperatureProvider provider = new TemperatureProvider();
+    Future<List<TemperatureModel>> temperatures = provider.fetchAllByUserId(userId);
+    return temperatures;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,17 +88,123 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
+      body: SingleChildScrollView(
+          child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
           // Center is a layout widget. It takes a single child and positions it
           // in the middle of the parent.
           child: Column(
-        children: <Widget>[
-          RaisedButton(
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (context) => AddTemperaturePage())),
-            child: Text('添加温度'),
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              FutureBuilder(
+                  future: getAllUsers(),
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      List<UserModel> users = snapshot.data;
+                      List<Widget> cards = List<Widget>();
+                      users.forEach((user) => {
+                            cards.add(FutureBuilder(
+                                future: getAllTemperature(user.id),
+                                builder: (BuildContext context,
+                                    AsyncSnapshot snapshotTemperature) {
+                                  if (snapshotTemperature.connectionState ==
+                                      ConnectionState.done) {
+                                    List<TemperatureModel> temperatures = snapshotTemperature.data;
+                                    if(temperatures == null) {
+                                      return CircularProgressIndicator();
+                                    }
+                                    var xAxis = [];
+                                    var list = '["2020-02-15 00:09","2020-02-15 00:31"]';
+                                    List<double> yAxis = List<double>();
+                                    temperatures.forEach((temperature) => {
+                                      xAxis.add('\"${temperature.time.substring(0, 5)}\"'),
+                                      yAxis.add(temperature.value)
+                                    });
+                                    var xAxisString = "[" + xAxis.join(",") + "]";
+                                    return Container(
+                                      child: Echarts(
+                                        option: '''
+    {
+      title: {
+        text: '${user.name}',
+        show: true,
+        left: 'center',
+      },
+      dataZoom: [
+        {
+            show: true,
+            realtime: true,
+            start: 0,
+            end: 100
+        },
+        {
+            type: 'inside',
+            realtime: true,
+            start: 0,
+            end: 100
+        }
+    ],
+    tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+            type: 'cross',
+            animation: false,
+            label: {
+                backgroundColor: '#505765'
+            }
+        }
+    },
+      xAxis: {
+        type: 'category',
+        data: $xAxisString,
+      },
+      yAxis: {
+        type: 'value',
+        min: function (value) {
+            return value.min - 0.5;
+        },
+        max: function (value) {
+            return value.max + 0.5;
+        },
+        minInterval: 0.2,
+        maxInterval: 0.5
+      },
+      series: [{
+        data: $yAxis,
+        type: 'line',
+        smooth: true
+
+      }]
+    }
+  ''',
+                                      ),
+                                      height: 250,
+                                    );
+                                  } else {
+                                    // 请求未结束，显示loading
+                                    return CircularProgressIndicator();
+                                  }
+                                }))
+                          });
+                      return Column(
+                        children: cards,
+                      );
+                    } else {
+                      // 请求未结束，显示loading
+                      return CircularProgressIndicator();
+                    }
+                  }),
+              RaisedButton(
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => AddTemperaturePage())),
+                child: Text('添加温度'),
+              ),
+            ],
           ),
-        ],
+        ),
       )),
     );
   }
