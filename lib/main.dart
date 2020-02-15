@@ -62,7 +62,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   Future<List<UserModel>> getAllUsers() async {
     UserProvider userProvider = new UserProvider();
     Future<List<UserModel>> users = userProvider.fetchAll();
@@ -71,7 +70,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<List<TemperatureModel>> getAllTemperature(int userId) async {
     TemperatureProvider provider = new TemperatureProvider();
-    Future<List<TemperatureModel>> temperatures = provider.fetchAllByUserId(userId);
+    Future<List<TemperatureModel>> temperatures =
+        provider.fetchAllByUserId(userId);
     return temperatures;
   }
 
@@ -90,53 +90,51 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: SingleChildScrollView(
-          child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          // Center is a layout widget. It takes a single child and positions it
-          // in the middle of the parent.
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              RaisedButton(
-                onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => AddTemperaturePage())),
-                child: Text('添加温度'),
-              ),
-              FutureBuilder(
-                  future: getAllUsers(),
-                  builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      List<UserModel> users = snapshot.data;
-                      List<Widget> cards = List<Widget>();
-                      users.forEach((user) => {
-                            cards.add(FutureBuilder(
-                                future: getAllTemperature(user.id),
-                                builder: (BuildContext context,
-                                    AsyncSnapshot snapshotTemperature) {
-                                  if (snapshotTemperature.connectionState ==
-                                      ConnectionState.done) {
-                                    List<TemperatureModel> temperatures = snapshotTemperature.data;
-                                    if(temperatures == null) {
-                                      return CircularProgressIndicator();
-                                    }
-                                    var xAxis = [];
-                                    List<double> yAxis = List<double>();
-                                    temperatures.forEach((temperature) => {
-                                      xAxis.add('\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
-                                      yAxis.add(temperature.value)
-                                    });
-                                    var xAxisString = "[" + xAxis.join(",") + "]";
-                                    return Container(
-                                      child: Echarts(
-                                        option: '''
+          child: Center(
+        // Center is a layout widget. It takes a single child and positions it
+        // in the middle of the parent.
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            FutureBuilder(
+                future: getAllUsers(),
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    List<UserModel> users = snapshot.data;
+                    List<Widget> cards = List<Widget>();
+                    users.forEach((user) => {
+                          cards.add(Container(
+                              height: 250,
+                              child: Card(
+                                elevation: 5,
+                                child: FutureBuilder(
+                                    future: getAllTemperature(user.id),
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot snapshotTemperature) {
+                                      if (snapshotTemperature.connectionState ==
+                                          ConnectionState.done) {
+                                        List<TemperatureModel> temperatures =
+                                            snapshotTemperature.data;
+                                        if (temperatures == null) {
+                                          return CircularProgressIndicator();
+                                        }
+                                        var xAxis = [];
+                                        List<double> yAxis = List<double>();
+                                        temperatures.forEach((temperature) => {
+                                              xAxis.add(
+                                                  '\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
+                                              yAxis.add(temperature.value)
+                                            });
+                                        var xAxisString =
+                                            "[" + xAxis.join(",") + "]";
+                                        return Echarts(
+                                          option: '''
     {
       title: {
         text: '${user.name}',
         show: true,
         left: 'center',
+        padding: 10,
       },
       dataZoom: [
         {
@@ -185,27 +183,31 @@ class _MyHomePageState extends State<MyHomePage> {
       }]
     }
   ''',
-                                      ),
-                                      height: 250,
-                                    );
-                                  } else {
-                                    // 请求未结束，显示loading
-                                    return CircularProgressIndicator();
-                                  }
-                                }))
-                          });
-                      return Column(
-                        children: cards,
-                      );
-                    } else {
-                      // 请求未结束，显示loading
-                      return CircularProgressIndicator();
-                    }
-                  }),
-            ],
-          ),
+                                        );
+                                      } else {
+                                        // 请求未结束，显示loading
+                                        return CircularProgressIndicator();
+                                      }
+                                    }),
+                              )))
+                        });
+                    return Column(
+                      children: cards,
+                    );
+                  } else {
+                    // 请求未结束，显示loading
+                    return CircularProgressIndicator();
+                  }
+                }),
+          ],
         ),
       )),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(context,
+            MaterialPageRoute(builder: (context) => AddTemperaturePage())),
+        tooltip: '添加温度',
+        child: Icon(Icons.add),
+      ),
     );
   }
 }
