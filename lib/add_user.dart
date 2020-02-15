@@ -21,6 +21,13 @@ class AddUserPageState extends State<AddUserPage> {
 
   GlobalKey _formKey = new GlobalKey<FormState>();
 
+
+  @override
+  void initState() {
+    super.initState();
+    _genderController.text = "m";
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -54,10 +61,7 @@ class AddUserPageState extends State<AddUserPage> {
                     onChanged: (newValue) => setState(() {
                           _genderController.text = newValue;
                         }),
-                    value: _genderController.text == null ||
-                            _genderController.text.isEmpty
-                        ? 'm'
-                        : _genderController.text,
+                    value: _genderController.text,
                     items: [
                       DropdownMenuItem(
                         child: Text('男'),

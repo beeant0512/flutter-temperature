@@ -22,6 +22,15 @@ class AddTemperaturePageState extends State<AddTemperaturePage> {
   TextEditingController _timeController = TextEditingController();
 
   GlobalKey _formKey = new GlobalKey<FormState>();
+  var dateTime = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    var dateTimes = dateTime.toString().split(" ");
+    _dayController.text = dateTimes[0];
+    _timeController.text = dateTimes[1].substring(0, 8);
+  }
 
   AddTemperaturePageState();
 
@@ -133,12 +142,12 @@ class AddTemperaturePageState extends State<AddTemperaturePage> {
                         suffix: new FlatButton(
                             onPressed: () {
                               DatePicker.showDatePicker(context,
-                                  maxDateTime: DateTime.now(),
+                                  maxDateTime: dateTime,
                                   onConfirm: (dateTime, List<int> index) {
                                 _dayController.text =
                                     dateTime.toString().split(" ")[0];
                               },
-                                  initialDateTime: DateTime.now(),
+                                  initialDateTime: dateTime,
                                   locale: DateTimePickerLocale.zh_cn);
                             },
                             child: new Text("选择"))),
