@@ -1,5 +1,6 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:path_provider/path_provider.dart';
 
 class SqlManager {
   static const _VERSION = 1;
@@ -9,10 +10,11 @@ class SqlManager {
   static Database _database;
 
   static init() async {
-    var databasesPath = await getDatabasesPath();
-
-    String path = join(databasesPath, _NAME);
+//    var databasesPath = await getDatabasesPath();
+    var databasesPath = await getExternalStorageDirectory();
+    String path = join(databasesPath.path, _NAME);
 //    await deleteDatabase(path);
+    print(path);
     _database = await openDatabase(path, version: _VERSION,
         onCreate: (Database db, int version) async {
       // When creating the db, create the table
