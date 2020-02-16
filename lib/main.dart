@@ -142,6 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
     {
       title: {
         show: false,
+        padding: 0,
       },
       dataZoom: [
         {

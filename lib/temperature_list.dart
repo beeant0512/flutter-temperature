@@ -44,7 +44,7 @@ class ListTemperaturePage extends StatelessWidget {
                         title: Text(
                             "${temperatures[index].value}℃"),
                         trailing: new FlatButton(
-                          child: new Text("详情 >"),
+                          child: new Text("编辑 >"),
                           onPressed: () => {
                             Navigator.push(
                                 context,
