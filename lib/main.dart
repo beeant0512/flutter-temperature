@@ -77,6 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -89,58 +90,56 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: SingleChildScrollView(
-          child: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            FutureBuilder(
-                future: getAllUsers(),
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    List<UserModel> users = snapshot.data;
-                    List<Widget> cards = List<Widget>();
-                    users.forEach((user) => {
-                          cards.add(Container(
-                              height: 250,
-                              child: Card(
-                                elevation: 5,
-                                child: FutureBuilder(
-                                    future: getAllTemperature(user.id),
-                                    builder: (BuildContext context,
-                                        AsyncSnapshot snapshotTemperature) {
-                                      if (snapshotTemperature.connectionState ==
-                                          ConnectionState.done) {
-                                        List<TemperatureModel> temperatures =
-                                            snapshotTemperature.data;
-                                        if (temperatures == null) {
-                                          return CircularProgressIndicator();
-                                        }
-                                        var xAxis = [];
-                                        List<double> yAxis = List<double>();
-                                        temperatures.forEach((temperature) => {
-                                              xAxis.add(
-                                                  '\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
-                                              yAxis.add(temperature.value)
-                                            });
-                                        var xAxisString =
-                                            "[" + xAxis.join(",") + "]";
-                                        return Echarts(
-                                          option: '''
+      body: FutureBuilder(
+        future: getAllUsers(),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            List<UserModel> users = snapshot.data;
+            return ListView.separated(
+              separatorBuilder: (BuildContext context, int index) => const Divider(),
+              padding: const EdgeInsets.all(8),
+              itemCount: users.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Center(
+                  child: FutureBuilder(
+                      future: getAllTemperature(users[index].id),
+                      builder: (BuildContext context,
+                          AsyncSnapshot snapshotTemperature) {
+                        if (snapshotTemperature.connectionState ==
+                            ConnectionState.done) {
+                          List<TemperatureModel> temperatures =
+                              snapshotTemperature.data;
+                          if (temperatures == null) {
+                            return CircularProgressIndicator();
+                          }
+                          var xAxis = [];
+                          List<double> yAxis = List<double>();
+                          temperatures.forEach((temperature) => {
+                            xAxis.add(
+                                '\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
+                            yAxis.add(temperature.value)
+                          });
+                          var xAxisString =
+                              "[" + xAxis.join(",") + "]";
+                          return Column(
+                            children: <Widget>[
+                              ListTile(
+                                  title: Text(users[index].name),
+                                  trailing: new Icon(Icons.keyboard_arrow_right),
+                              ),
+                              Container(
+                                height: 250,
+                                child: Echarts(
+                                  option: '''
     {
       title: {
-        text: '${user.name}',
-        show: true,
-        left: 'center',
-        padding: 10,
+        show: false,
       },
       dataZoom: [
         {
             show: true,
             realtime: true,
-            start: 0,
+            start: 90,
             end: 100
         },
         {
@@ -149,17 +148,17 @@ class _MyHomePageState extends State<MyHomePage> {
             start: 0,
             end: 100
         }
-    ],
-    tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-            type: 'cross',
-            animation: false,
-            label: {
-                backgroundColor: '#505765'
-            }
-        }
-    },
+      ],
+      tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+              type: 'cross',
+              animation: false,
+              label: {
+                  backgroundColor: '#505765'
+              }
+          }
+      },
       xAxis: {
         type: 'category',
         data: $xAxisString,
@@ -183,25 +182,23 @@ class _MyHomePageState extends State<MyHomePage> {
       }]
     }
   ''',
-                                        );
-                                      } else {
-                                        // 请求未结束，显示loading
-                                        return CircularProgressIndicator();
-                                      }
-                                    }),
-                              )))
-                        });
-                    return Column(
-                      children: cards,
-                    );
-                  } else {
-                    // 请求未结束，显示loading
-                    return CircularProgressIndicator();
-                  }
-                }),
-          ],
-        ),
-      )),
+                                ),
+                              )
+                            ],
+                          );
+                        } else {
+                          // 请求未结束，显示loading
+                          return CircularProgressIndicator();
+                        }
+                      }),
+                );
+              },
+            );
+          } else {
+            return CircularProgressIndicator();
+          }
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(context,
             MaterialPageRoute(builder: (context) => AddTemperaturePage())),
