@@ -6,20 +6,23 @@ import 'package:my_temperature/database/model/UserModel.dart';
 import 'package:my_temperature/database/provider/TemperatureProvider.dart';
 import 'package:my_temperature/database/provider/UserProvider.dart';
 
-class AddTemperaturePage extends StatefulWidget {
-  const AddTemperaturePage({Key key}) : super(key: key);
+class ManageTemperaturePage extends StatefulWidget {
+  final TemperatureModel temperature;
+
+  const ManageTemperaturePage({Key key, this.temperature}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return AddTemperaturePageState();
+    return ManageTemperaturePageState(this.temperature);
   }
 }
 
-class AddTemperaturePageState extends State<AddTemperaturePage> {
+class ManageTemperaturePageState extends State<ManageTemperaturePage> {
   TextEditingController _temperatureController = TextEditingController();
   TextEditingController _userController = TextEditingController();
   TextEditingController _dayController = TextEditingController();
   TextEditingController _timeController = TextEditingController();
+  TemperatureModel temperature;
 
   GlobalKey _formKey = new GlobalKey<FormState>();
   var dateTime = DateTime.now();
@@ -27,12 +30,19 @@ class AddTemperaturePageState extends State<AddTemperaturePage> {
   @override
   void initState() {
     super.initState();
-    var dateTimes = dateTime.toString().split(" ");
-    _dayController.text = dateTimes[0];
-    _timeController.text = dateTimes[1].substring(0, 8);
+    if(null != temperature){
+      _dayController.text = temperature.date;
+      _timeController.text = temperature.time;
+      _userController.text = temperature.userId.toString();
+      _temperatureController.text = temperature.value.toString();
+    } else {
+      var dateTimes = dateTime.toString().split(" ");
+      _dayController.text = dateTimes[0];
+      _timeController.text = dateTimes[1].substring(0, 8);
+    }
   }
 
-  AddTemperaturePageState();
+  ManageTemperaturePageState(this.temperature);
 
   Future<List<UserModel>> getAllUsers() async {
     UserProvider userProvider = new UserProvider();
@@ -42,13 +52,14 @@ class AddTemperaturePageState extends State<AddTemperaturePage> {
 
   @override
   Widget build(BuildContext context) {
+    String title = null == temperature ? "添加温度" : "编辑温度";
     return Scaffold(
         appBar: AppBar(
           // 去掉导航栏下面的阴影
           elevation: 0.0,
           // Here we take the value from the MyHomePage object that was created by
           // the App.build method, and use it to set our appbar title.
-          title: Text('添加温度'),
+          title: Text(title),
         ),
         // 使用 SingleChildScrollView 包裹 解决 调出键盘时报溢出异常
         body: SingleChildScrollView(
@@ -147,7 +158,7 @@ class AddTemperaturePageState extends State<AddTemperaturePage> {
                                 _dayController.text =
                                     dateTime.toString().split(" ")[0];
                               },
-                                  initialDateTime: dateTime,
+                                  initialDateTime:  DateTime.parse("${_dayController.text} ${_timeController.text}"),
                                   locale: DateTimePickerLocale.zh_cn);
                             },
                             child: new Text("选择"))),
@@ -175,7 +186,7 @@ class AddTemperaturePageState extends State<AddTemperaturePage> {
                                       .split(" ")[1]
                                       .substring(0, 8);
                                 },
-                                    initialDateTime: DateTime.now(),
+                                    initialDateTime: DateTime.parse("${_dayController.text} ${_timeController.text}"),
                                     locale: DateTimePickerLocale.zh_cn);
                               },
                               child: new Text("选择"))),
@@ -193,7 +204,7 @@ class AddTemperaturePageState extends State<AddTemperaturePage> {
                           icon: Icon(Icons.whatshot),
                           labelText: '温度',
                           hintText: '请输入您的体温',
-                          suffix: new FlatButton(child: new Text("℃"))),
+                          suffix: new FlatButton(child: new Text("℃"), onPressed: () => {},)),
                       validator: (v) {
                         var error = v.trim().length > 0 ? null : "温度不能为空";
                         error = v.compareTo("35") >= 0
@@ -229,7 +240,12 @@ class AddTemperaturePageState extends State<AddTemperaturePage> {
                                 model.date = _dayController.text;
                                 model.time = _timeController.text;
                                 model.userId = int.parse(_userController.text);
-                                temperatureProvider.insert(model);
+                                if(null != temperature){
+                                  model.id  = temperature.id;
+                                  temperatureProvider.update(model);
+                                } else {
+                                  temperatureProvider.insert(model);
+                                }
 
                                 Navigator.pop(context);
                               }

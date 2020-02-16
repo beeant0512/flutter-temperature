@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:my_temperature/add_temperature.dart';
+import 'package:my_temperature/temperature_manage.dart';
 import 'package:my_temperature/add_user.dart';
 import 'package:my_temperature/database/provider/TemperatureProvider.dart';
+import 'package:my_temperature/temperature_list.dart';
 
 import 'database/model/TemperatureModel.dart';
 import 'database/model/UserModel.dart';
@@ -36,7 +37,7 @@ class MyApp extends StatelessWidget {
       home: MyHomePage(title: '温度计'),
       routes: <String, WidgetBuilder>{
         // 这里可以定义静态路由，不能传递参数
-        '/router/temperature': (_) => new AddTemperaturePage(),
+        '/router/temperature': (_) => new ManageTemperaturePage(),
         '/router/user': (_) => new AddUserPage(),
       },
     );
@@ -125,7 +126,14 @@ class _MyHomePageState extends State<MyHomePage> {
                             children: <Widget>[
                               ListTile(
                                   title: Text(users[index].name),
-                                  trailing: new Icon(Icons.keyboard_arrow_right),
+                                  trailing: new FlatButton.icon(
+                                    label: Text(""),
+                                    onPressed: () => {
+                                      Navigator.push(context,
+                                          MaterialPageRoute(builder: (context) => ListTemperaturePage(user: users[index])))
+                                    },
+                                    icon: Icon(Icons.keyboard_arrow_right), //`Icon` to display
+                                  ),
                               ),
                               Container(
                                 height: 250,
@@ -201,7 +209,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(context,
-            MaterialPageRoute(builder: (context) => AddTemperaturePage())),
+            MaterialPageRoute(builder: (context) => ManageTemperaturePage())),
         tooltip: '添加温度',
         child: Icon(Icons.add),
       ),
