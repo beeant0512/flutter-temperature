@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:my_temperature/temperature_manage.dart';
 import 'package:my_temperature/add_user.dart';
 import 'package:my_temperature/database/provider/TemperatureProvider.dart';
 import 'package:my_temperature/temperature_list.dart';
+import 'package:my_temperature/temperature_manage.dart';
 
 import 'database/model/TemperatureModel.dart';
 import 'database/model/UserModel.dart';
@@ -72,13 +72,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<List<TemperatureModel>> getAllTemperature(int userId) async {
     TemperatureProvider provider = new TemperatureProvider();
     Future<List<TemperatureModel>> temperatures =
-        provider.fetchAllByUserId(userId);
+        provider.fetchAllByUserId(userId, "asc");
     return temperatures;
   }
 
   @override
   Widget build(BuildContext context) {
-
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -97,7 +96,8 @@ class _MyHomePageState extends State<MyHomePage> {
           if (snapshot.connectionState == ConnectionState.done) {
             List<UserModel> users = snapshot.data;
             return ListView.separated(
-              separatorBuilder: (BuildContext context, int index) => const Divider(),
+              separatorBuilder: (BuildContext context, int index) =>
+                  const Divider(),
               padding: const EdgeInsets.all(8),
               itemCount: users.length,
               itemBuilder: (BuildContext context, int index) {
@@ -116,24 +116,28 @@ class _MyHomePageState extends State<MyHomePage> {
                           var xAxis = [];
                           List<double> yAxis = List<double>();
                           temperatures.forEach((temperature) => {
-                            xAxis.add(
-                                '\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
-                            yAxis.add(temperature.value)
-                          });
-                          var xAxisString =
-                              "[" + xAxis.join(",") + "]";
+                                xAxis.add(
+                                    '\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
+                                yAxis.add(temperature.value)
+                              });
+                          var xAxisString = "[" + xAxis.join(",") + "]";
                           return Column(
                             children: <Widget>[
                               ListTile(
-                                  title: Text(users[index].name),
-                                  trailing: new FlatButton.icon(
-                                    label: Text(""),
-                                    onPressed: () => {
-                                      Navigator.push(context,
-                                          MaterialPageRoute(builder: (context) => ListTemperaturePage(user: users[index])))
-                                    },
-                                    icon: Icon(Icons.keyboard_arrow_right), //`Icon` to display
-                                  ),
+                                title: Text(users[index].name),
+                                trailing: new FlatButton.icon(
+                                  label: Text(""),
+                                  onPressed: () => {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                ListTemperaturePage(
+                                                    user: users[index])))
+                                  },
+                                  icon: Icon(Icons
+                                      .keyboard_arrow_right), //`Icon` to display
+                                ),
                               ),
                               Container(
                                 height: 250,

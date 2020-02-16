@@ -13,7 +13,7 @@ class ListTemperaturePage extends StatelessWidget {
   Future<List<TemperatureModel>> getAllTemperature(int userId) async {
     TemperatureProvider provider = new TemperatureProvider();
     Future<List<TemperatureModel>> temperatures =
-        provider.fetchAllByUserId(userId);
+        provider.fetchAllByUserId(userId, 'desc');
     return temperatures;
   }
 
@@ -34,6 +34,7 @@ class ListTemperaturePage extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.done) {
                 List<TemperatureModel> temperatures = snapshot.data;
                 return ListView.separated(
+                  reverse: true,
                   separatorBuilder: (BuildContext context, int index) =>
                       const Divider(),
                   padding: const EdgeInsets.all(8),

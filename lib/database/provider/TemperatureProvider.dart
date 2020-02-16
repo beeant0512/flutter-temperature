@@ -32,10 +32,10 @@ class TemperatureProvider extends DatabaseProvider {
     return list;
   }
 
-  Future<List<TemperatureModel>> fetchAllByUserId(int userId) async {
+  Future<List<TemperatureModel>> fetchAllByUserId(int userId, String order) async {
     Database db = await getDataBase();
     List<Map<String, dynamic>> maps = await db.rawQuery(
-        "select * from $table where user_id = $userId order by date asc, time asc");
+        "select * from $table where user_id = $userId order by date $order, time $order");
     List<TemperatureModel> list = List<TemperatureModel>();
 
     maps.forEach((model) => {list.add(TemperatureModel.fromJson(model))});
