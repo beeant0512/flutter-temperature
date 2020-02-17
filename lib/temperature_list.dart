@@ -34,7 +34,6 @@ class ListTemperaturePage extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.done) {
                 List<TemperatureModel> temperatures = snapshot.data;
                 return ListView.separated(
-                  reverse: true,
                   separatorBuilder: (BuildContext context, int index) =>
                       const Divider(),
                   padding: const EdgeInsets.all(8),
