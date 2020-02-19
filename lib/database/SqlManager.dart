@@ -1,9 +1,9 @@
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sqflite/sqflite.dart';
 
 class SqlManager {
-  static const _VERSION = 1;
+  static const _VERSION = 2;
 
   static const _NAME = "xstudio.db";
 
@@ -19,9 +19,12 @@ class SqlManager {
         onCreate: (Database db, int version) async {
       // When creating the db, create the table
       await db.execute(
-          'CREATE TABLE temperature (id INTEGER PRIMARY KEY, user_id INTEGER, date TEXT, time TEXT, value INTEGER)');
+          'CREATE TABLE temperature (id INTEGER PRIMARY KEY, user_id INTEGER, date TEXT, time TEXT, value INTEGER, comment TEXT)');
       await db.execute(
           'CREATE TABLE user (id INTEGER PRIMARY KEY, name TEXT, gender TEXT, birthday INTEGER)');
+    }, onUpgrade: (Database db, int oldVersion, int newVersion) async {
+      // 版本 1 - > 2 数据库升级
+      await db.execute('ALTER TABLE `temperature` ADD `comment` TEXT');
     });
   }
 

@@ -40,9 +40,10 @@ class ListTemperaturePage extends StatelessWidget {
                   itemCount: temperatures.length,
                   itemBuilder: (BuildContext context, int index) {
                     return ListTile(
-                        subtitle: Text("${temperatures[index].date} ${temperatures[index].time}"),
+                        subtitle: Text(
+                            "${temperatures[index].date} ${temperatures[index].time}"),
                         title: Text(
-                            "${temperatures[index].value}℃"),
+                            "${temperatures[index].value}℃  ${temperatures[index].comment == null ? '' : temperatures[index].comment}"),
                         trailing: new FlatButton(
                           child: new Text("编辑 >"),
                           onPressed: () => {

@@ -7,7 +7,7 @@ class TemperatureProvider extends DatabaseProvider {
 
   @override
   createTableString() {
-    return 'CREATE TABLE temperature (id INTEGER PRIMARY KEY, user_id INTEGER, date TEXT, time TEXT, value INTEGER)';
+    return 'CREATE TABLE temperature (id INTEGER PRIMARY KEY, user_id INTEGER, date TEXT, time TEXT, value INTEGER, comment TEXT)';
   }
 
   @override
@@ -19,8 +19,8 @@ class TemperatureProvider extends DatabaseProvider {
   Future insert(TemperatureModel model) async {
     Database db = await getDataBase();
     return await db.rawInsert(
-        "insert into $table (user_id, date, time, value) values (?, ?,?,?)",
-        [model.userId, model.date, model.time, model.value]);
+        "insert into $table (user_id, date, time, value, comment) values (?, ?,?,?,?)",
+        [model.userId, model.date, model.time, model.value, model.comment]);
   }
 
   Future<List> fetchAll() async {
@@ -32,7 +32,8 @@ class TemperatureProvider extends DatabaseProvider {
     return list;
   }
 
-  Future<List<TemperatureModel>> fetchAllByUserId(int userId, String order) async {
+  Future<List<TemperatureModel>> fetchAllByUserId(
+      int userId, String order) async {
     Database db = await getDataBase();
     List<Map<String, dynamic>> maps = await db.rawQuery(
         "select * from $table where user_id = $userId order by date $order, time $order");
@@ -45,7 +46,14 @@ class TemperatureProvider extends DatabaseProvider {
   Future update(TemperatureModel model) async {
     Database db = await getDataBase();
     return await db.rawUpdate(
-        "update $table set user_id = ?, date = ?, time = ?, value = ? where id = ?",
-        [model.userId, model.date, model.time, model.value, model.id]);
+        "update $table set user_id = ?, date = ?, time = ?, value = ?, comment = ? where id = ?",
+        [
+          model.userId,
+          model.date,
+          model.time,
+          model.value,
+          model.comment,
+          model.id
+        ]);
   }
 }

@@ -22,6 +22,7 @@ class ManageTemperaturePageState extends State<ManageTemperaturePage> {
   TextEditingController _userController = TextEditingController();
   TextEditingController _dayController = TextEditingController();
   TextEditingController _timeController = TextEditingController();
+  TextEditingController _commentController = TextEditingController();
   TemperatureModel temperature;
 
   GlobalKey _formKey = new GlobalKey<FormState>();
@@ -30,11 +31,12 @@ class ManageTemperaturePageState extends State<ManageTemperaturePage> {
   @override
   void initState() {
     super.initState();
-    if(null != temperature){
+    if (null != temperature) {
       _dayController.text = temperature.date;
       _timeController.text = temperature.time;
       _userController.text = temperature.userId.toString();
       _temperatureController.text = temperature.value.toString();
+      _commentController.text = temperature.comment;
     } else {
       var dateTimes = dateTime.toString().split(" ");
       _dayController.text = dateTimes[0];
@@ -85,7 +87,6 @@ class ManageTemperaturePageState extends State<ManageTemperaturePage> {
                           if (users.isEmpty) {
                             return TextFormField(
                               enableInteractiveSelection: false,
-                              autofocus: true,
                               decoration: new InputDecoration(
                                   icon: Icon(Icons.person),
                                   enabled: false,
@@ -145,7 +146,6 @@ class ManageTemperaturePageState extends State<ManageTemperaturePage> {
                   ),
                   TextFormField(
                     enableInteractiveSelection: false,
-                    autofocus: true,
                     decoration: new InputDecoration(
                         icon: Icon(Icons.date_range),
                         labelText: '日期',
@@ -158,7 +158,8 @@ class ManageTemperaturePageState extends State<ManageTemperaturePage> {
                                 _dayController.text =
                                     dateTime.toString().split(" ")[0];
                               },
-                                  initialDateTime:  DateTime.parse("${_dayController.text} ${_timeController.text}"),
+                                  initialDateTime: DateTime.parse(
+                                      "${_dayController.text} ${_timeController.text}"),
                                   locale: DateTimePickerLocale.zh_cn);
                             },
                             child: new Text("选择"))),
@@ -170,7 +171,6 @@ class ManageTemperaturePageState extends State<ManageTemperaturePage> {
                   TextFormField(
                       // *** this is important to prevent user interactive selection ***
                       enableInteractiveSelection: false,
-                      autofocus: true,
                       controller: _timeController,
                       decoration: new InputDecoration(
                           icon: Icon(Icons.access_time),
@@ -186,7 +186,8 @@ class ManageTemperaturePageState extends State<ManageTemperaturePage> {
                                       .split(" ")[1]
                                       .substring(0, 8);
                                 },
-                                    initialDateTime: DateTime.parse("${_dayController.text} ${_timeController.text}"),
+                                    initialDateTime: DateTime.parse(
+                                        "${_dayController.text} ${_timeController.text}"),
                                     locale: DateTimePickerLocale.zh_cn);
                               },
                               child: new Text("选择"))),
@@ -204,7 +205,10 @@ class ManageTemperaturePageState extends State<ManageTemperaturePage> {
                           icon: Icon(Icons.whatshot),
                           labelText: '温度',
                           hintText: '请输入您的体温',
-                          suffix: new FlatButton(child: new Text("℃"), onPressed: () => {},)),
+                          suffix: new FlatButton(
+                            child: new Text("℃"),
+                            onPressed: () => {},
+                          )),
                       validator: (v) {
                         var error = v.trim().length > 0 ? null : "温度不能为空";
                         error = v.compareTo("35") >= 0
@@ -212,6 +216,14 @@ class ManageTemperaturePageState extends State<ManageTemperaturePage> {
                             : "温度区间35~42";
                         return error;
                       }),
+                  TextFormField(
+                    controller: _commentController,
+                    decoration: new InputDecoration(
+                      icon: Icon(Icons.dvr),
+                      labelText: '备注',
+                      hintText: '请输入备注',
+                    ),
+                  ),
                   Padding(
                       padding: const EdgeInsets.only(top: 28.0),
                       child: Row(children: [
@@ -240,8 +252,9 @@ class ManageTemperaturePageState extends State<ManageTemperaturePage> {
                                 model.date = _dayController.text;
                                 model.time = _timeController.text;
                                 model.userId = int.parse(_userController.text);
-                                if(null != temperature){
-                                  model.id  = temperature.id;
+                                model.comment = _commentController.text;
+                                if (null != temperature) {
+                                  model.id = temperature.id;
                                   temperatureProvider.update(model);
                                 } else {
                                   temperatureProvider.insert(model);

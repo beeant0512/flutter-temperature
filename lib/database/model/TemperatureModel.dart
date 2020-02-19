@@ -10,6 +10,8 @@ class TemperatureModel extends BaseModel {
 
   String time;
 
+  String comment;
+
   static TemperatureModel fromJson(Map<String, dynamic> map) {
     TemperatureModel model = new TemperatureModel();
     model.userId = map['user_id'];
@@ -17,6 +19,7 @@ class TemperatureModel extends BaseModel {
     model.date = map['date'];
     model.time = map['time'];
     model.id = map['id'];
+    model.comment = map['comment'];
     return model;
   }
 }
