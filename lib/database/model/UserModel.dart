@@ -10,7 +10,7 @@ class UserModel extends BaseModel {
 
   static UserModel fromJson(Map<String, dynamic> map) {
     UserModel model = new UserModel();
-    model.birthday = map['birthday'];
+    model.birthday = map['birthday'].toString();
     model.name = map['name'];
     model.gender = map['gender'];
     model.id = map['id'];

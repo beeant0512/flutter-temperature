@@ -1,3 +1,4 @@
+import 'package:flukit/flukit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -95,54 +96,60 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             List<UserModel> users = snapshot.data;
-            return ListView.separated(
-              separatorBuilder: (BuildContext context, int index) =>
-                  const Divider(),
-              padding: const EdgeInsets.all(8),
-              itemCount: users.length,
-              itemBuilder: (BuildContext context, int index) {
-                return Center(
-                  child: FutureBuilder(
-                      future: getAllTemperature(users[index].id),
-                      builder: (BuildContext context,
-                          AsyncSnapshot snapshotTemperature) {
-                        if (snapshotTemperature.connectionState ==
-                            ConnectionState.done) {
-                          List<TemperatureModel> temperatures =
-                              snapshotTemperature.data;
-                          if (temperatures == null) {
-                            return CircularProgressIndicator();
-                          }
-                          var xAxis = [];
-                          List<double> yAxis = List<double>();
-                          temperatures.forEach((temperature) => {
-                                xAxis.add(
-                                    '\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
-                                yAxis.add(temperature.value)
-                              });
-                          var xAxisString = "[" + xAxis.join(",") + "]";
-                          return Column(
-                            children: <Widget>[
-                              ListTile(
-                                title: Text(users[index].name),
-                                trailing: new FlatButton.icon(
-                                  label: Text(""),
-                                  onPressed: () => {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                ListTemperaturePage(
-                                                    user: users[index])))
-                                  },
-                                  icon: Icon(Icons
-                                      .keyboard_arrow_right), //`Icon` to display
-                                ),
-                              ),
-                              Container(
-                                height: 250,
-                                child: Echarts(
-                                  option: '''
+            if(users.length == 0){
+              return Column();
+            }
+            List<Widget> swippers = [];
+
+            users.forEach((user) => swippers.add(FutureBuilder(
+                future: getAllTemperature(user.id),
+                builder: (BuildContext context,
+                    AsyncSnapshot snapshotTemperature) {
+                  if (snapshotTemperature.connectionState ==
+                      ConnectionState.done) {
+                    List<TemperatureModel> temperatures =
+                        snapshotTemperature.data;
+                    if (temperatures == null) {
+                      return CircularProgressIndicator();
+                    }
+                    var xAxis = [];
+                    List<double> yAxis = List<double>();
+                    temperatures.forEach((temperature) => {
+                      xAxis.add(
+                          '\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
+                      yAxis.add(temperature.value)
+                    });
+                    var xAxisString = "[" + xAxis.join(",") + "]";
+                    return Column(
+                      children: <Widget>[
+                        ListTile(
+                          title: Text(user.name),
+                          onTap: () => {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        ListTemperaturePage(
+                                            user: user)))
+                          },
+                          trailing: new FlatButton.icon(
+                            label: Text(""),
+                            onPressed: () => {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          ListTemperaturePage(
+                                              user: user)))
+                            },
+                            icon: Icon(Icons
+                                .keyboard_arrow_right), //`Icon` to display
+                          ),
+                        ),
+                        Container(
+                          height: 250,
+                          child: Echarts(
+                            option: '''
     {
       title: {
         show: false,
@@ -195,17 +202,24 @@ class _MyHomePageState extends State<MyHomePage> {
       }]
     }
   ''',
-                                ),
-                              )
-                            ],
-                          );
-                        } else {
-                          // 请求未结束，显示loading
-                          return CircularProgressIndicator();
-                        }
-                      }),
-                );
-              },
+                          ),
+                        )
+                      ],
+                    );
+                  } else {
+                    // 请求未结束，显示loading
+                    return CircularProgressIndicator();
+                  }
+                })));
+            return SizedBox(
+              height: 350.0,
+              child: Swiper(
+                autoStart: false,
+                circular: true,
+                //reverse: true, //反向
+                indicator: RectangleSwiperIndicator(),
+                children: swippers,
+              ),
             );
           } else {
             return CircularProgressIndicator();
