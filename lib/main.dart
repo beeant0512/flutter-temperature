@@ -1,4 +1,3 @@
-import 'package:flukit/flukit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -65,7 +64,49 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool showTitle = true;
-  bool showAll = true;
+
+  // 10 全部 0 今天 -1 昨天 -2 前天
+  int daysBefore = 10;
+
+  static List<Choice> choices = const <Choice>[
+    const Choice(title: '全部', icon: Icons.directions_bike),
+    const Choice(title: '今天', icon: Icons.directions_car),
+    const Choice(title: '昨天', icon: Icons.directions_car),
+    const Choice(title: '显示数值', icon: Icons.directions_boat),
+    const Choice(title: '隐藏数值', icon: Icons.directions_bus),
+  ];
+
+  Choice _selectedChoice = choices[0]; // The app's "state".
+
+  void _select(Choice choice) {
+    switch (choice.title) {
+      case "全部":
+        setState(() {
+          daysBefore = 10;
+        });
+        break;
+      case "今天":
+        setState(() {
+          daysBefore = 0;
+        });
+        break;
+      case "昨天":
+        setState(() {
+          daysBefore = -1;
+        });
+        break;
+      case "显示数值":
+        setState(() {
+          showTitle = true;
+        });
+        break;
+      case "隐藏数值":
+        setState(() {
+          showTitle = false;
+        });
+        break;
+    }
+  }
 
   Future<List<UserModel>> getAllUsers() async {
     UserProvider userProvider = new UserProvider();
@@ -73,15 +114,20 @@ class _MyHomePageState extends State<MyHomePage> {
     return users;
   }
 
-  Future<List<TemperatureModel>> getAllTemperature(int userId, bool showAll) async {
+  Future<List<TemperatureModel>> getAllTemperature(
+      int userId, int daysBefore) async {
     TemperatureProvider provider = new TemperatureProvider();
     Future<List<TemperatureModel>> temperatures;
-    if(showAll){
-      temperatures =
-          provider.fetchAllByUserId(userId, "asc");
+    if (daysBefore == 10) {
+      temperatures = provider.fetchAllByUserId(userId, "asc");
     } else {
-      temperatures =
-          provider.fetchAllByUserIdByDay(userId, DateTime.now().toString().split(" ")[0], "asc");
+      temperatures = provider.fetchAllByUserIdByDay(
+          userId,
+          DateTime.now()
+              .add(new Duration(days: daysBefore))
+              .toString()
+              .split(" ")[0],
+          "asc");
     }
     return temperatures;
   }
@@ -96,114 +142,95 @@ class _MyHomePageState extends State<MyHomePage> {
     // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Column(
-        children: <Widget>[
-          FutureBuilder(
-            future: getAllUsers(),
-            builder: (BuildContext context, AsyncSnapshot snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                List<UserModel> users = snapshot.data;
-                if (users.length == 0) {
-                  return Column();
-                }
-                List<Widget> swippers = [];
-
-                users.forEach((user) => swippers.add(FutureBuilder(
-                    future: getAllTemperature(user.id, showAll),
-                    builder:
-                        (BuildContext context, AsyncSnapshot snapshotTemperature) {
-                      if (snapshotTemperature.connectionState ==
-                          ConnectionState.done) {
-                        List<TemperatureModel> temperatures =
-                            snapshotTemperature.data;
-                        if (temperatures == null) {
-                          return CircularProgressIndicator();
-                        }
-                        var xAxis = [];
-                        List<double> yAxis = List<double>();
-                        temperatures.forEach((temperature) => {
-                          xAxis.add(
-                              '\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
-                          yAxis.add(temperature.value)
-                        });
-                        var xAxisString = "[" + xAxis.join(",") + "]";
-                        return Column(
-                          children: <Widget>[
-                            ListTile(
-                              title: Text(user.name),
-                              onTap: () => {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            ListTemperaturePage(user: user)))
-                              },
-                              trailing: new FlatButton.icon(
-                                label: Text(""),
-                                onPressed: () => {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              ListTemperaturePage(user: user)))
-                                },
-                                icon: Icon(
-                                    Icons.keyboard_arrow_right), //`Icon` to display
-                              ),
-                            ),
-                            Container(
-                              height: 250,
-                              child: Echarts(
-                                option: getEchartsOptions(xAxisString, yAxis),
-                              ),
-                            )
-                          ],
-                        );
-                      } else {
-                        // 请求未结束，显示loading
-                        return CircularProgressIndicator();
-                      }
-                    })));
-                return SizedBox(
-                  height: 350.0,
-                  child: Swiper(
-                    autoStart: false,
-                    circular: true,
-                    //reverse: true, //反向
-                    indicator: RectangleSwiperIndicator(),
-                    children: swippers,
-                  ),
-                );
-              } else {
-                return CircularProgressIndicator();
-              }
-            },
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            verticalDirection: VerticalDirection.up,
-            children: <Widget>[
-              FlatButton(
-                  onPressed: () {
-                    setState(() {
-                      showTitle = !showTitle;
-                    });
-                  },
-                  child: new Text(showTitle ? "隐藏数值" : "显示数值")),
-              FlatButton(
-                  onPressed: () {
-                    setState(() {
-                      showAll = !showAll;
-                    });
-                  },
-                  child: new Text(showAll ? "当天" : "全部"))
-            ],
-          )
-        ],
+          // Here we take the value from the MyHomePage object that was created by
+          // the App.build method, and use it to set our appbar title.
+          title: Text(widget.title),
+          actions: [
+            PopupMenuButton<Choice>(
+              onSelected: _select,
+              itemBuilder: (BuildContext context) {
+                return choices.map((Choice choice) {
+                  return PopupMenuItem<Choice>(
+                    value: choice,
+                    child: Text(choice.title),
+                  );
+                }).toList();
+              },
+            ),
+          ]),
+      body: Padding(
+        padding: const EdgeInsets.all(8),
+        child: FutureBuilder(
+          future: getAllUsers(),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              List<UserModel> users = snapshot.data;
+              return ListView.separated(
+                separatorBuilder: (BuildContext context, int index) =>
+                    const Divider(),
+                padding: const EdgeInsets.all(8),
+                itemCount: users.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Center(
+                    child: FutureBuilder(
+                        future: getAllTemperature(users[index].id, daysBefore),
+                        builder: (BuildContext context,
+                            AsyncSnapshot snapshotTemperature) {
+                          if (snapshotTemperature.connectionState ==
+                              ConnectionState.done) {
+                            List<TemperatureModel> temperatures =
+                                snapshotTemperature.data;
+                            if (temperatures == null) {
+                              return CircularProgressIndicator();
+                            }
+                            var xAxis = [];
+                            List<double> yAxis = List<double>();
+                            temperatures.forEach((temperature) => {
+                                  xAxis.add(
+                                      '\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
+                                  yAxis.add(temperature.value)
+                                });
+                            var xAxisString = "[" + xAxis.join(",") + "]";
+                            return Column(
+                              children: <Widget>[
+                                ListTile(
+                                  title: Text(users[index].name),
+                                  trailing: new FlatButton.icon(
+                                    label: Text(""),
+                                    onPressed: () => {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ListTemperaturePage(
+                                                      user: users[index])))
+                                    },
+                                    icon: Icon(Icons
+                                        .keyboard_arrow_right), //`Icon` to display
+                                  ),
+                                ),
+                                Container(
+                                  height: 250,
+                                  child: Echarts(
+                                    option:
+                                        getEchartsOptions(xAxisString, yAxis),
+                                  ),
+                                )
+                              ],
+                            );
+                          } else {
+                            // 请求未结束，显示loading
+                            return CircularProgressIndicator();
+                          }
+                        }),
+                  );
+                },
+              );
+            } else {
+              return CircularProgressIndicator();
+            }
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(context,
@@ -268,7 +295,7 @@ class _MyHomePageState extends State<MyHomePage> {
       series: [{
         data: $yAxis,
         type: 'line',''';
-    if(showTitle){
+    if (showTitle) {
       options += '''
          label: {
                 normal: {
@@ -278,9 +305,40 @@ class _MyHomePageState extends State<MyHomePage> {
             },
       ''';
     }
-       options += '''
+    options += '''
       }]
     }''';
     return options;
+  }
+}
+
+class Choice {
+  const Choice({this.title, this.icon});
+
+  final String title;
+  final IconData icon;
+}
+
+class ChoiceCard extends StatelessWidget {
+  const ChoiceCard({Key key, this.choice}) : super(key: key);
+
+  final Choice choice;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextStyle textStyle = Theme.of(context).textTheme.display1;
+    return Card(
+      color: Colors.white,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Icon(choice.icon, size: 128.0, color: textStyle.color),
+            Text(choice.title, style: textStyle),
+          ],
+        ),
+      ),
+    );
   }
 }
