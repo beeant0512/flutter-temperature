@@ -96,15 +96,15 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             List<UserModel> users = snapshot.data;
-            if(users.length == 0){
+            if (users.length == 0) {
               return Column();
             }
             List<Widget> swippers = [];
 
             users.forEach((user) => swippers.add(FutureBuilder(
                 future: getAllTemperature(user.id),
-                builder: (BuildContext context,
-                    AsyncSnapshot snapshotTemperature) {
+                builder:
+                    (BuildContext context, AsyncSnapshot snapshotTemperature) {
                   if (snapshotTemperature.connectionState ==
                       ConnectionState.done) {
                     List<TemperatureModel> temperatures =
@@ -115,10 +115,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     var xAxis = [];
                     List<double> yAxis = List<double>();
                     temperatures.forEach((temperature) => {
-                      xAxis.add(
-                          '\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
-                      yAxis.add(temperature.value)
-                    });
+                          xAxis.add(
+                              '\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
+                          yAxis.add(temperature.value)
+                        });
                     var xAxisString = "[" + xAxis.join(",") + "]";
                     return Column(
                       children: <Widget>[
@@ -129,8 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                        ListTemperaturePage(
-                                            user: user)))
+                                        ListTemperaturePage(user: user)))
                           },
                           trailing: new FlatButton.icon(
                             label: Text(""),
@@ -139,69 +138,16 @@ class _MyHomePageState extends State<MyHomePage> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) =>
-                                          ListTemperaturePage(
-                                              user: user)))
+                                          ListTemperaturePage(user: user)))
                             },
-                            icon: Icon(Icons
-                                .keyboard_arrow_right), //`Icon` to display
+                            icon: Icon(
+                                Icons.keyboard_arrow_right), //`Icon` to display
                           ),
                         ),
                         Container(
                           height: 250,
                           child: Echarts(
-                            option: '''
-    {
-      title: {
-        show: false,
-        padding: 0,
-      },
-      dataZoom: [
-        {
-            show: true,
-            realtime: true,
-            start: 90,
-            end: 100
-        },
-        {
-            type: 'inside',
-            realtime: true,
-            start: 0,
-            end: 100
-        }
-      ],
-      tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-              type: 'cross',
-              animation: false,
-              label: {
-                  backgroundColor: '#505765'
-              }
-          }
-      },
-      xAxis: {
-        type: 'category',
-        data: $xAxisString,
-      },
-      yAxis: {
-        type: 'value',
-        min: function (value) {
-            return value.min - 0.5;
-        },
-        max: function (value) {
-            return value.max + 0.5;
-        },
-        minInterval: 0.2,
-        maxInterval: 0.5
-      },
-      series: [{
-        data: $yAxis,
-        type: 'line',
-        smooth: true
-
-      }]
-    }
-  ''',
+                            option: getEchartsOptions(xAxisString, yAxis),
                           ),
                         )
                       ],
@@ -233,5 +179,64 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Icon(Icons.add),
       ),
     );
+  }
+
+  getEchartsOptions(String xAxisString, List<double> yAxis) {
+    return '''
+    {
+      title: {
+          text: '体温曲线'
+      },
+      dataZoom: [
+        {
+            show: true,
+            realtime: true,
+            start: 90,
+            end: 100
+        },
+        {
+            type: 'inside',
+            realtime: true,
+            start: 0,
+            end: 100
+        }
+      ],
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+              type: 'cross',
+              animation: false,
+              label: {
+                  backgroundColor: '#505765'
+              }
+          }
+      },
+      xAxis: {
+        type: 'category',
+        data: $xAxisString,
+      },
+      yAxis: {
+        type: 'value',
+        min: function (value) {
+            return value.min - 0.5;
+        },
+        max: function (value) {
+            return value.max + 0.5;
+        },
+        minInterval: 0.2,
+        maxInterval: 0.5,
+      },
+      series: [{
+        data: $yAxis,
+        type: 'line',
+      }]
+    }
+  ''';
   }
 }
