@@ -64,16 +64,25 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  bool showTitle = true;
+  bool showAll = true;
+
   Future<List<UserModel>> getAllUsers() async {
     UserProvider userProvider = new UserProvider();
     Future<List<UserModel>> users = userProvider.fetchAll();
     return users;
   }
 
-  Future<List<TemperatureModel>> getAllTemperature(int userId) async {
+  Future<List<TemperatureModel>> getAllTemperature(int userId, bool showAll) async {
     TemperatureProvider provider = new TemperatureProvider();
-    Future<List<TemperatureModel>> temperatures =
-        provider.fetchAllByUserId(userId, "asc");
+    Future<List<TemperatureModel>> temperatures;
+    if(showAll){
+      temperatures =
+          provider.fetchAllByUserId(userId, "asc");
+    } else {
+      temperatures =
+          provider.fetchAllByUserIdByDay(userId, DateTime.now().toString().split(" ")[0], "asc");
+    }
     return temperatures;
   }
 
@@ -91,86 +100,110 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: FutureBuilder(
-        future: getAllUsers(),
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            List<UserModel> users = snapshot.data;
-            if (users.length == 0) {
-              return Column();
-            }
-            List<Widget> swippers = [];
+      body: Column(
+        children: <Widget>[
+          FutureBuilder(
+            future: getAllUsers(),
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                List<UserModel> users = snapshot.data;
+                if (users.length == 0) {
+                  return Column();
+                }
+                List<Widget> swippers = [];
 
-            users.forEach((user) => swippers.add(FutureBuilder(
-                future: getAllTemperature(user.id),
-                builder:
-                    (BuildContext context, AsyncSnapshot snapshotTemperature) {
-                  if (snapshotTemperature.connectionState ==
-                      ConnectionState.done) {
-                    List<TemperatureModel> temperatures =
-                        snapshotTemperature.data;
-                    if (temperatures == null) {
-                      return CircularProgressIndicator();
-                    }
-                    var xAxis = [];
-                    List<double> yAxis = List<double>();
-                    temperatures.forEach((temperature) => {
+                users.forEach((user) => swippers.add(FutureBuilder(
+                    future: getAllTemperature(user.id, showAll),
+                    builder:
+                        (BuildContext context, AsyncSnapshot snapshotTemperature) {
+                      if (snapshotTemperature.connectionState ==
+                          ConnectionState.done) {
+                        List<TemperatureModel> temperatures =
+                            snapshotTemperature.data;
+                        if (temperatures == null) {
+                          return CircularProgressIndicator();
+                        }
+                        var xAxis = [];
+                        List<double> yAxis = List<double>();
+                        temperatures.forEach((temperature) => {
                           xAxis.add(
                               '\"${temperature.date.substring(5)} ${temperature.time.substring(0, 5)}\"'),
                           yAxis.add(temperature.value)
                         });
-                    var xAxisString = "[" + xAxis.join(",") + "]";
-                    return Column(
-                      children: <Widget>[
-                        ListTile(
-                          title: Text(user.name),
-                          onTap: () => {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        ListTemperaturePage(user: user)))
-                          },
-                          trailing: new FlatButton.icon(
-                            label: Text(""),
-                            onPressed: () => {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          ListTemperaturePage(user: user)))
-                            },
-                            icon: Icon(
-                                Icons.keyboard_arrow_right), //`Icon` to display
-                          ),
-                        ),
-                        Container(
-                          height: 250,
-                          child: Echarts(
-                            option: getEchartsOptions(xAxisString, yAxis),
-                          ),
-                        )
-                      ],
-                    );
-                  } else {
-                    // 请求未结束，显示loading
-                    return CircularProgressIndicator();
-                  }
-                })));
-            return SizedBox(
-              height: 350.0,
-              child: Swiper(
-                autoStart: false,
-                circular: true,
-                //reverse: true, //反向
-                indicator: RectangleSwiperIndicator(),
-                children: swippers,
-              ),
-            );
-          } else {
-            return CircularProgressIndicator();
-          }
-        },
+                        var xAxisString = "[" + xAxis.join(",") + "]";
+                        return Column(
+                          children: <Widget>[
+                            ListTile(
+                              title: Text(user.name),
+                              onTap: () => {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            ListTemperaturePage(user: user)))
+                              },
+                              trailing: new FlatButton.icon(
+                                label: Text(""),
+                                onPressed: () => {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              ListTemperaturePage(user: user)))
+                                },
+                                icon: Icon(
+                                    Icons.keyboard_arrow_right), //`Icon` to display
+                              ),
+                            ),
+                            Container(
+                              height: 250,
+                              child: Echarts(
+                                option: getEchartsOptions(xAxisString, yAxis),
+                              ),
+                            )
+                          ],
+                        );
+                      } else {
+                        // 请求未结束，显示loading
+                        return CircularProgressIndicator();
+                      }
+                    })));
+                return SizedBox(
+                  height: 350.0,
+                  child: Swiper(
+                    autoStart: false,
+                    circular: true,
+                    //reverse: true, //反向
+                    indicator: RectangleSwiperIndicator(),
+                    children: swippers,
+                  ),
+                );
+              } else {
+                return CircularProgressIndicator();
+              }
+            },
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            verticalDirection: VerticalDirection.up,
+            children: <Widget>[
+              FlatButton(
+                  onPressed: () {
+                    setState(() {
+                      showTitle = !showTitle;
+                    });
+                  },
+                  child: new Text(showTitle ? "隐藏数值" : "显示数值")),
+              FlatButton(
+                  onPressed: () {
+                    setState(() {
+                      showAll = !showAll;
+                    });
+                  },
+                  child: new Text(showAll ? "当天" : "全部"))
+            ],
+          )
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(context,
@@ -182,7 +215,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   getEchartsOptions(String xAxisString, List<double> yAxis) {
-    return '''
+    var options = '''
     {
       title: {
           text: '体温曲线'
@@ -234,9 +267,20 @@ class _MyHomePageState extends State<MyHomePage> {
       },
       series: [{
         data: $yAxis,
-        type: 'line',
-      }]
+        type: 'line',''';
+    if(showTitle){
+      options += '''
+         label: {
+                normal: {
+                    show: true,
+                    position: 'top'
+                }
+            },
+      ''';
     }
-  ''';
+       options += '''
+      }]
+    }''';
+    return options;
   }
 }
